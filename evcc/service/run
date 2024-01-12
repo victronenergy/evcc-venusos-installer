@@ -1,0 +1,3 @@
+#!/bin/sh
+exec 2>&1
+exec /data/evcc/evcc -c /data/evcc/evcc.json

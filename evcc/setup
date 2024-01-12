@@ -1,0 +1,7 @@
+#!/bin/sh
+
+# Copy evcc service to /service/evcc to run on startup
+rm -rf /service/evcc && cp -r /data/evcc/service /service/evcc
+
+# Create /data/evcc/evcc.json
+exec /data/evcc/evcc-autoconfig.py > /data/evcc/evcc.json
