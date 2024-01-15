@@ -1,7 +1,12 @@
 #!/bin/sh
 
 # Copy evcc service to /service/evcc to run on startup
-rm -rf /service/evcc && cp -r /data/evcc/service /service/evcc
+cp -rf /data/evcc/service /service/evcc
 
 # Create /data/evcc/evcc.json
 exec /data/evcc/evcc-autoconfig.py > /data/evcc/evcc.json
+
+# Make evcc survive a VenusOS update
+touch /data/rcS.local
+chmod +x /data/rcS.local
+grep -qxF 'cp -rf /data/evcc/service /service/evcc' /data/rcS.local || printf '# Auto-reinstall evcc\ncp -rf /data/evcc/service /service/evcc\n' >> /data/rcS.local

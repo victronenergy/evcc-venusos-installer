@@ -27,7 +27,3 @@ After another reboot, evcc should get available at port 7070 of your GX device, 
 
 Open the `./evcc/version` file and change it to the preferred version, then follow the installation instructions above.
 
-## TODOs
-
-* Make the evcc install survive a Venus OS update
-
