@@ -1,3 +1,10 @@
 #!/bin/sh
+echo "*** starting evcc ***"
+
+until netstat -an | grep 0.0.0.0:1883.*LISTEN > /dev/null; do
+    echo "Waiting for MQTT to come up ..."
+    sleep 1
+done
+
 exec 2>&1
 exec /data/evcc/evcc -c /data/evcc/evcc.json
