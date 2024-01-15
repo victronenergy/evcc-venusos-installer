@@ -184,7 +184,12 @@ if __name__ == "__main__":
     for token_path in ['token.txt', 'token']:
         if os.path.exists(token_path):
             with open(token_path, 'r') as f:
-                SPONSOR_TOKEN = f.readline().strip()
+                line = f.readline()
+                while line is not None and line.startswith('#'):
+                    line = f.readline()
+                if line is not None:
+                    SPONSOR_TOKEN = line.replace('sponsortoken:', '').strip()
+
 
     data = EvccDbusConfig.get(SPONSOR_TOKEN)
     print(json.dumps(data, indent=2))
