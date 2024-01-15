@@ -18,5 +18,4 @@ else
 fi
 echo "done\n"
 
-
 echo "ready for install"

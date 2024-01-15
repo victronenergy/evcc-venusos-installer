@@ -13,7 +13,14 @@ Create a text file called `token.txt` within the `evcc` folder, paste your token
 
 ## Create venus-data.tar.gz
 
-Run `sh build.sh` to load the evcc binary and pack a `venus-data.tar.gz` archive.
+Clone the repository and initialize the git submodule:
+```sh
+git clone https://github.com/philipptrenz/evcc-venusos-installer.git
+cd evcc-venusos-installer
+git submodule update --init --recursive
+```
+
+Now, run `sh build.sh` to load the evcc binary and pack a `venus-data.tar.gz` archive.
 
 ## Install evcc on a GX device
 
@@ -25,5 +32,5 @@ After another reboot, evcc should get available at port 7070 of your GX device, 
 
 ### How do I change the evcc version?
 
-Open the `./evcc/version` file and change it to the preferred version, then follow the installation instructions above.
+Open the `./evcc/version` file and change it to the preferred version, then build and install again
 
