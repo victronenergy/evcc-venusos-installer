@@ -2,7 +2,7 @@
 echo "*** starting evcc ***"
 
 until netstat -an | grep 0.0.0.0:1883.*LISTEN > /dev/null; do
-    echo "Waiting for MQTT to come up ..."
+    echo "waiting for MQTT broker to start ..."
     sleep 1
 done
 
