@@ -7,6 +7,6 @@ cp -rf /data/evcc/service /service/evcc
 exec /data/evcc/evcc-autoconfig.py > /data/evcc/evcc.json
 
 # Make evcc survive a VenusOS update
-touch /data/rcS.local
-chmod +x /data/rcS.local
-grep -qxF 'cp -rf /data/evcc/service /service/evcc' /data/rcS.local || printf '# Auto-reinstall evcc\ncp -rf /data/evcc/service /service/evcc\n' >> /data/rcS.local
+touch /data/rc.local
+chmod +x /data/rc.local
+grep -qxF 'cp -rf /data/evcc/service /service/evcc' /data/rc.local || printf '# Auto-reinstall evcc\ncp -rf /data/evcc/service /service/evcc\n' >> /data/rc.local
