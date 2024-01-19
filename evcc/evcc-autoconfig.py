@@ -101,8 +101,7 @@ class EvccDbusConfig:
                     'mode': 'pv',
                     'phases': num_phases,
                     'mincurrent': min_current,
-                    'maxcurrent': max_current,
-                    'resetOnDisconnect': True
+                    'maxcurrent': max_current
                 })
 
     def get_network(self):

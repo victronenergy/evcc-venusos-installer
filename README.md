@@ -29,10 +29,3 @@ Now, run `sh build.sh` to load the evcc binary and pack a `venus-data.tar.gz` ar
 Put the `venus-data.tar.gz` archive on an USB stick or SD card, connect it to the GX device and reboot. If you have SSH access, you can alternatively call the script `/etc/init.d/update-data.sh` instead of rebooting.
 
 After another reboot, evcc should get available at port 7070 of your GX device, e.g. [http://venus.local:7070/](http://venus.local:7070/).
-
-## FAQ
-
-### How do I change the evcc version?
-
-Open the `./evcc/version` file and change it to the preferred version, then build and install again.
-Please note: For Victron Energy EV Charging Stations to work properly, it requires evcc <= 0.122.1 or > 0.123.8.
