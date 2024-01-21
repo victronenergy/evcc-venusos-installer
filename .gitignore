@@ -1,5 +1,7 @@
 .DS_Store
 evcc/evcc
-token
-token.txt
 venus-data.tar.gz
+evcc.yaml
+evcc/**/evcc.dist.yaml
+evcc.additional.yaml
+evcc/pyyaml*

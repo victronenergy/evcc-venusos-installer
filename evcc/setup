@@ -1,12 +1,34 @@
 #!/bin/sh
 
-# Copy evcc service to /service/evcc to run on startup
-cp -rf /data/evcc/service /service/evcc
+FILE='/data/rc.local'
+DESCRIPTION='Auto-reinstall evcc'
+COMMAND='cp -rf /data/evcc/service /service/evcc'
 
-# Create /data/evcc/evcc.json
-exec /data/evcc/evcc-autoconfig.py > /data/evcc/evcc.json
+# STEP 1: Install pyyaml if missing
 
-# Make evcc survive a VenusOS update
-touch /data/rc.local
-chmod +x /data/rc.local
-grep -qxF 'cp -rf /data/evcc/service /service/evcc' /data/rc.local || printf '# Auto-reinstall evcc\ncp -rf /data/evcc/service /service/evcc\n' >> /data/rc.local
+export PYTHONPATH="${PYTHONPATH}:/data/evcc/ext"
+python3 -c "import yaml" 2> /dev/null
+if [ $? -ne 0 ]; then
+    PWD=$(pwd)
+    cd /data/evcc/pyyaml*
+    python3 setup.py install --install-lib /data/evcc/ext
+    cd $PWD
+fi
+
+# STEP 2: Copy evcc service to /service/evcc to run on startup
+
+$COMMAND
+
+# STEP 3: Make evcc survive a VenusOS update
+
+# Create file if not exists
+[ -f $FILE ] || {
+  echo "#!/bin/sh" > $FILE
+  chmod +x $FILE
+}
+
+# Add description and command to file, if not present
+grep -qF -- "$COMMAND" "$FILE" || {
+  printf "\n# ${DESCRIPTION}\n" >> $FILE
+  echo "$COMMAND" >> "$FILE"
+}

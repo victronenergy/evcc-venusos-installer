@@ -5,9 +5,20 @@ url="https://github.com/evcc-io/evcc/releases/download/${version}/evcc_${version
 
 printf "loading and unpacking evcc version $version ... "
 curl --silent --output - -L "$url" | tar xz -C evcc
+rm evcc/evcc.dist.yaml
 echo "done"
 
-rm evcc/evcc.dist.yaml
+printf "loading and unpacking pyyaml package ... "
+curl --silent --output - -L "https://github.com/yaml/pyyaml/archive/refs/tags/6.0.1.tar.gz" | tar xz -C evcc/
+echo "done"
+
+printf "copying evcc.yaml configuration ... "
+if [ -f evcc.yaml ]; then
+    cp evcc.yaml ./evcc/evcc.additional.yaml
+else
+    cp evcc.dist.yaml ./evcc/evcc.additional.yaml
+fi
+echo "done"
 
 printf "packing venus-data.tar.gz ... "
 [ -f venus-data.tar.gz ] && rm venus-data.tar.gz

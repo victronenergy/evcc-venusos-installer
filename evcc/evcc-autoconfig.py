@@ -2,16 +2,22 @@
 
 import os
 import sys
-import json
 import dbus
-from typing import cast
+
+app_dir = os.path.dirname(os.path.realpath(__file__))
+
+# Locally installed packages, namingly pyyaml
+sys.path.insert(1, os.path.join(app_dir, 'ext'))
+EGG_DIR =  os.path.join(app_dir, 'ext')
+for filename in os.listdir(EGG_DIR):
+    if filename.endswith(".egg"):
+        sys.path.insert(2, os.path.join(EGG_DIR, filename))
 
 # Victron packages
-AppDir = os.path.dirname(os.path.realpath(__file__))
-sys.path.insert(1, os.path.join(AppDir, 'ext', 'velib_python'))
+sys.path.insert(3, os.path.join(app_dir, 'ext', 'velib_python'))
 
+import yaml
 from ve_utils import get_vrm_portal_id, wrap_dbus_value
-# from logger import setup_logging
 
 software_version = '0.1'
 
@@ -30,7 +36,7 @@ class EvccDbusConfig:
         self.gx_modbus_hostname = '127.0.0.1'
         self.gx_modbus_port     = 502
 
-        self.interval    = 10  # in seconds
+        self.interval    = 30  # in seconds
         self.system_name = self._get_dbus_value('com.victronenergy.settings', '/Settings/SystemSetup/SystemName')
 
         self.meter_refs = {
@@ -43,8 +49,8 @@ class EvccDbusConfig:
         self.chargers = []
         self.loadpoints = []
 
+        self._enable_gx_modbus_server()
         self._find_evchargers()
-
 
     def _get_dbus_value(self, service, path, type=str, fallback=None):
         try:
@@ -59,6 +65,17 @@ class EvccDbusConfig:
         value = wrap_dbus_value(value)
         return self._bus.call_blocking(service, path, None, 'SetValue', 'v', [value])
     
+    def _enable_gx_modbus_server(self):
+        ve_settings = 'com.victronenergy.settings'
+        services = self._bus.list_names()
+        if ve_settings in services:
+            self._set_dbus_value(ve_settings, '/Settings/Services/Modbus', 1)
+
+    def _switch_ev_charger_to_manual(self, service):
+        # Switch to Manual mode, if not already set
+        if self._get_dbus_value(service, '/Mode', int) > 0:
+            self._set_dbus_value(service, '/Mode', 0)
+
     def _find_evchargers(self):
         services = self._bus.list_names()
 
@@ -68,9 +85,7 @@ class EvccDbusConfig:
                 if not self._get_dbus_value(service, '/Connected', bool): 
                     continue
 
-                # Switch to Manual mode, if not already set
-                if self._get_dbus_value(service, '/Mode', int) > 0:
-                    self._set_dbus_value(service, '/Mode', 0)
+                self._switch_ev_charger_to_manual(service)
 
                 unique_name = service.replace('com.victronenergy.evcharger.', '')
                 device_instance = self._get_dbus_value(service, '/DeviceInstance', int)
@@ -132,7 +147,7 @@ class EvccDbusConfig:
     
     def get_site(self):
         return {
-            'title': self.system_name,
+            'title': self.system_name or "Victron Energy",
             'meters': self.meter_refs
         }
     
@@ -145,50 +160,55 @@ class EvccDbusConfig:
     def get_interval(self):
         return f"{ self.interval }s"
     
-    def get_config(self, sponsor_token=None):
-        return {
-            'log': 'debug',
-            'levels': {
-                'cache': 'error'
-            },
+    def get_config(self, config={}):
 
+        config.update({
             'database': {
                 'type': 'sqlite',
                 'dsn': '/data/evcc/evcc.db'
             },
-
-            'plant': None,
-            'sponsortoken': sponsor_token,
-            
-            'telemetry': False,
-
             'interval': self.get_interval(),
             'network': self.get_network(),
             'mqtt': self.get_mqtt(),
             'meters': self.get_meters(),
             'site': self.get_site(),
-            'chargers': self.get_chargers(),
-            'loadpoints': self.get_loadpoints(),
-        }
+        })
+
+        if 'chargers' not in config:
+            config['chargers'] = []
+        if 'loadpoints' not in config:
+            config['loadpoints'] = []
+
+        # if chargers or loadpoints are configured manually, do not auto-detect
+        if config['chargers'] or config['loadpoints']:
+            chargers = config['chargers']
+            loadpoints = config['loadpoints']
+        else:
+            chargers = self.get_chargers()
+            loadpoints = self.get_loadpoints()
     
+        config.update({
+            'chargers': chargers,
+            'loadpoints': loadpoints
+        })
+
+        return config
+
     @staticmethod
-    def get(sponsor_token=None):
-        return EvccDbusConfig().get_config(sponsor_token)
-
-
+    def get(additional_config={}):
+        return EvccDbusConfig().get_config(additional_config)
 
 if __name__ == "__main__":
 
-    SPONSOR_TOKEN = None
-    for token_path in ['token.txt', 'token']:
-        if os.path.exists(token_path):
-            with open(token_path, 'r') as f:
-                line = f.readline()
-                while line is not None and line.startswith('#'):
-                    line = f.readline()
-                if line is not None:
-                    SPONSOR_TOKEN = line.replace('sponsortoken:', '').strip()
+    ADDITIONAL_CONFIG_PATH = os.path.join(app_dir, 'evcc.additional.yaml')
+    CONFIG_PATH = os.path.join(app_dir, 'evcc.yaml')
 
+    add_cfg = {}
+    if os.path.isfile(ADDITIONAL_CONFIG_PATH):
+        with open(ADDITIONAL_CONFIG_PATH, 'r') as f:
+            add_cfg = yaml.safe_load(f)
 
-    data = EvccDbusConfig.get(SPONSOR_TOKEN)
-    print(json.dumps(data, indent=2))
+    data = EvccDbusConfig.get(add_cfg)
+
+    with open(CONFIG_PATH, 'w') as f:
+        yaml.dump(data, f)

@@ -6,5 +6,8 @@ until netstat -an | grep 0.0.0.0:1883.*LISTEN > /dev/null; do
     sleep 1
 done
 
+# create config file
+/data/evcc/evcc-autoconfig.py
+
 exec 2>&1
-exec /data/evcc/evcc -c /data/evcc/evcc.json
+exec /data/evcc/evcc -c /data/evcc/evcc.yaml
