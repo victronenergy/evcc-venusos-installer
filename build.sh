@@ -14,9 +14,9 @@ echo "done"
 
 printf "copying evcc.yaml configuration ... "
 if [ -f evcc.yaml ]; then
-    cp evcc.yaml ./evcc/evcc.additional.yaml
+    cp evcc.yaml ./evcc/evcc.custom.yaml
 else
-    cp evcc.dist.yaml ./evcc/evcc.additional.yaml
+    cp evcc.dist.yaml ./evcc/evcc.custom.yaml
 fi
 echo "done"
 

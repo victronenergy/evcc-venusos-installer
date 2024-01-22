@@ -2,7 +2,7 @@
 
 FILE='/data/rc.local'
 DESCRIPTION='Auto-reinstall evcc'
-COMMAND='cp -rf /data/evcc/service /service/evcc'
+COMMAND='ln -sf /data/evcc/service/ /service/evcc'
 
 # STEP 1: Install pyyaml if missing
 
@@ -11,7 +11,7 @@ python3 -c "import yaml" 2> /dev/null
 if [ $? -ne 0 ]; then
     PWD=$(pwd)
     cd /data/evcc/pyyaml*
-    python3 setup.py install --install-lib /data/evcc/ext
+    python3 setup.py --without-libyaml install --install-lib /data/evcc/ext
     cd $PWD
 fi
 

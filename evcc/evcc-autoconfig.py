@@ -203,19 +203,19 @@ class EvccDbusConfig:
         return config
 
     @staticmethod
-    def get(additional_config={}):
-        return EvccDbusConfig().get_config(additional_config)
+    def get(custom_config={}):
+        return EvccDbusConfig().get_config(custom_config)
 
 if __name__ == "__main__":
 
     logger.info("creating evcc.yaml ...")
 
-    ADDITIONAL_CONFIG_PATH = os.path.join(app_dir, 'evcc.additional.yaml')
+    CUSTOM_CONFIG_PATH = os.path.join(app_dir, 'evcc.custom.yaml')
     CONFIG_PATH = os.path.join(app_dir, 'evcc.yaml')
 
     add_cfg = {}
-    if os.path.isfile(ADDITIONAL_CONFIG_PATH):
-        with open(ADDITIONAL_CONFIG_PATH, 'r') as f:
+    if os.path.isfile(CUSTOM_CONFIG_PATH):
+        with open(CUSTOM_CONFIG_PATH, 'r') as f:
             add_cfg = yaml.safe_load(f)
 
     data = EvccDbusConfig.get(add_cfg)
