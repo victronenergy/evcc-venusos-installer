@@ -3,6 +3,13 @@
 import os
 import sys
 import dbus
+import logging
+
+
+# configure logging
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+logger = logging.getLogger('evcc-autoconfig.py')
+
 
 app_dir = os.path.dirname(os.path.realpath(__file__))
 
@@ -26,7 +33,7 @@ class EvccDbusConfig:
 
     def __init__(self):
         self._bus = dbus.SessionBus() if 'DBUS_SESSION_BUS_ADDRESS' in os.environ else dbus.SystemBus()
-        
+
         self.evcc_hostname = 'evcc.local'
         self.evcc_port     = 7070
 
@@ -46,12 +53,6 @@ class EvccDbusConfig:
             'battery': 've-battery'
         }
 
-        self.chargers = []
-        self.loadpoints = []
-
-        self._enable_gx_modbus_server()
-        self._find_evchargers()
-
     def _get_dbus_value(self, service, path, type=str, fallback=None):
         try:
             val = self._bus.call_blocking(service, path, None, 'GetValue', '', [])
@@ -60,32 +61,37 @@ class EvccDbusConfig:
         if isinstance(val, dbus.Array) and len(val) == 0:
             val = None
         return type(val) if val is not None else fallback
-    
+
     def _set_dbus_value(self, service, path, value):
         value = wrap_dbus_value(value)
         return self._bus.call_blocking(service, path, None, 'SetValue', 'v', [value])
-    
-    def _enable_gx_modbus_server(self):
-        ve_settings = 'com.victronenergy.settings'
-        services = self._bus.list_names()
-        if ve_settings in services:
-            self._set_dbus_value(ve_settings, '/Settings/Services/Modbus', 1)
 
-    def _switch_ev_charger_to_manual(self, service):
-        # Switch to Manual mode, if not already set
-        if self._get_dbus_value(service, '/Mode', int) > 0:
+    def _enable_gx_modbus_server(self):
+        service = 'com.victronenergy.settings'
+        try:
+            self._set_dbus_value(service, '/Settings/Services/Modbus', 1)
+            logger.info(f"enabled GX Modbus server")
+        except:
+            logger.exception('enabling GX Modbus server failed')
+
+    def _switch_ev_charger_to_manual(self, unique_name):
+        service = 'com.victronenergy.evcharger.' + unique_name
+        try:
             self._set_dbus_value(service, '/Mode', 0)
+            logger.info(f"switched evcharger ({ unique_name }) to manual mode")
+        except:
+            logger.exception('setting evcharger to manual mode failed')
 
     def _find_evchargers(self):
         services = self._bus.list_names()
+        chargers = []
+        loadpoints = []
 
         for service in services:
             if service.startswith('com.victronenergy.evcharger.'):
 
-                if not self._get_dbus_value(service, '/Connected', bool): 
+                if not self._get_dbus_value(service, '/Connected', bool):
                     continue
-
-                self._switch_ev_charger_to_manual(service)
 
                 unique_name = service.replace('com.victronenergy.evcharger.', '')
                 device_instance = self._get_dbus_value(service, '/DeviceInstance', int)
@@ -96,11 +102,13 @@ class EvccDbusConfig:
                     name = name.pop() \
                         or self._get_dbus_value(service, '/ProductName')
 
+                logger.info(f"found evcharger '{ name }' ({ unique_name })")
+
                 max_current = self._get_dbus_value(service, '/MaxCurrent', int)
                 min_current = self._get_dbus_value(service, '/MinCurrent', int, fallback=6)
                 num_phases  = self._get_dbus_value(service, '/NrOfPhases', int, fallback=3)
 
-                self.chargers.append({
+                chargers.append({
                     'type': 'template',
                     'template': 'victron',
                     'host': self.gx_modbus_hostname,
@@ -110,7 +118,7 @@ class EvccDbusConfig:
                     'name': unique_name
                 })
 
-                self.loadpoints.append({
+                loadpoints.append({
                     'title': name,
                     'charger': unique_name,
                     'mode': 'pv',
@@ -118,6 +126,8 @@ class EvccDbusConfig:
                     'mincurrent': min_current,
                     'maxcurrent': max_current
                 })
+
+        return chargers, loadpoints
 
     def get_network(self):
         return {
@@ -138,59 +148,57 @@ class EvccDbusConfig:
                 'name': name
             })
         return meters
-    
-    def get_chargers(self):
-        return self.chargers
-    
-    def get_loadpoints(self):
-        return self.loadpoints
-    
+
     def get_site(self):
         return {
             'title': self.system_name or "Victron Energy",
-            'meters': self.meter_refs
+            'meters': self.meter_refs,
+            'residualPower': 100
         }
-    
+
     def get_mqtt(self):
         return {
             'broker': self.mqtt_hostname,
             'topic': self.mqtt_topic
         }
-    
+
     def get_interval(self):
         return f"{ self.interval }s"
-    
-    def get_config(self, config={}):
 
+    def get_config(self, config:dict={}):
+
+        # add or override, if user-defined
         config.update({
             'database': {
                 'type': 'sqlite',
                 'dsn': '/data/evcc/evcc.db'
             },
-            'interval': self.get_interval(),
-            'network': self.get_network(),
             'mqtt': self.get_mqtt(),
-            'meters': self.get_meters(),
-            'site': self.get_site(),
         })
 
-        if 'chargers' not in config:
-            config['chargers'] = []
-        if 'loadpoints' not in config:
-            config['loadpoints'] = []
+        # add, if not user-defined
+        config['interval'] = config.get('interval', self.get_interval())
+        config['network']  = config.get('network', self.get_network())
+        config['meters']   = config.get('meters', self.get_meters())
+        config['site']     = config.get('site', self.get_site())
 
-        # if chargers or loadpoints are configured manually, do not auto-detect
-        if config['chargers'] or config['loadpoints']:
-            chargers = config['chargers']
-            loadpoints = config['loadpoints']
+        # add auto-detected chargers or loadpoints, if not user-defined
+        if config.get('chargers', []) or config.get('loadpoints', []):
+            config.update({
+                'chargers': config['chargers'],
+                'loadpoints': config['loadpoints']
+            })
         else:
-            chargers = self.get_chargers()
-            loadpoints = self.get_loadpoints()
-    
-        config.update({
-            'chargers': chargers,
-            'loadpoints': loadpoints
-        })
+            chargers, loadpoints = self._find_evchargers()
+            config.update({
+                'chargers': chargers,
+                'loadpoints': loadpoints
+            })
+
+            for charger in chargers:
+                self._switch_ev_charger_to_manual(charger['name'])
+
+        self._enable_gx_modbus_server()
 
         return config
 
@@ -199,6 +207,8 @@ class EvccDbusConfig:
         return EvccDbusConfig().get_config(additional_config)
 
 if __name__ == "__main__":
+
+    logger.info("creating evcc.yaml ...")
 
     ADDITIONAL_CONFIG_PATH = os.path.join(app_dir, 'evcc.additional.yaml')
     CONFIG_PATH = os.path.join(app_dir, 'evcc.yaml')
@@ -212,3 +222,5 @@ if __name__ == "__main__":
 
     with open(CONFIG_PATH, 'w') as f:
         yaml.dump(data, f)
+
+    logger.info(f"written config to { CONFIG_PATH }")

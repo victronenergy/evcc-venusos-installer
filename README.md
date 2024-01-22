@@ -17,18 +17,24 @@ git submodule update --init --recursive
 
 Copy and rename the file `evcc.dist.yaml` to `evcc.yaml`. Then, add your custom configurations there, like sponsor token, EV charger configurations, etc.
 
-If you are solely using Victron EV Charging Stations connected to your GX device, you only have to add your sponsor token, as `chargers` and `loadpoints` will be automatically added for you before the start of evcc.
+If you have a Victron system together with an EV Charging Station also from us, you only need to add your sponsor token, as everything else is automatically detected when evcc starts.
 
 Please note the following:
-* An error in the configuration will prevent evcc from starting. In this case, the configuration must be corrected and the archive built and installed again (see steps below)
-* The entries of `database`, `interval`, `network`, `mqtt`, `meters` and `site` will be overwritten with the correct parameters for your installation, so no need to add them anyways
-* If you add entries for `loadpoints` and/or `chargers` to `evcc.yaml`, Victron EV Charging Stations are no longer auto-detected and will also have to be configured manually
-* For instructions on how to configure the `evcc.yaml`, please refer to the evcc [documentation](https://docs.evcc.io/en/docs/Home/) and [community](https://github.com/evcc-io/evcc/discussions/)
+* An error in the configuration will prevent evcc from starting – In this case, the configuration must be corrected and the archive built and installed again (see steps below)
+* On evcc startup, the entries for `database` and `mqtt` will always be replaced with the correct parameters for the GX device
+* The entries for `interval`, `network`, `meters`, `site`, `chargers` and `loadpoints` will be added automatically on evcc startup, as long as they are not already present in your `evcc.yaml`
+* If you add `loadpoints` and/or `chargers` to `evcc.yaml`, Victron Energy EV Charging Stations are no longer auto-detected and will also have to be configured manually
+
+For general instructions on how to configure `evcc.yaml`, please refer to the evcc [documentation](https://docs.evcc.io/en/docs/Home/) and [community](https://github.com/evcc-io/evcc/discussions/).
 
 ## Install evcc using a USB stick or SD card
 
-Now, run `sh build.sh` to load the evcc binary and pack a `venus-data.tar.gz` archive.
+Now, run the following command to load the evcc binary and pack a `venus-data.tar.gz` archive:
 
-Put the `venus-data.tar.gz` archive on a USB stick or SD card, connect it to the GX device and reboot the device. If you have SSH access enabled, you can alternatively call the script `/etc/init.d/update-data.sh` instead of rebooting.
+```sh
+sh build.sh
+```
+
+Put the `venus-data.tar.gz` archive on a USB stick or SD card, connect it to the GX device and reboot the device. If you have SSH access, you can alternatively call `/etc/init.d/update-data.sh` instead of rebooting.
 
 After a while, evcc will get available at port `7070` of your GX device, e.g. [http://venus.local:7070/](http://venus.local:7070/).
