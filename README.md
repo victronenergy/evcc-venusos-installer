@@ -47,4 +47,4 @@ Please don't forget to remove the USB stick after the installation process.
 
 ### How to disable the evcc service?
 
-We are working on controls via the user interface of the GX device. Until then, this must be done via SSH: Disable evcc service with the command `touch /data/evcc_disabled && svc -d /service/evcc*` and re-enable it using `rm /data/evcc_disabled && svc -u /service/evcc*`.
+We are working on controls via the user interface of the GX device. Until then, this must be done via SSH by executing `/data/evcc/down` to disable and `/data/evcc/up` for re-enabling it.

@@ -1,0 +1,4 @@
+#!/bin/sh
+
+touch /data/.evcc_disabled
+svc -d /service/evcc*
