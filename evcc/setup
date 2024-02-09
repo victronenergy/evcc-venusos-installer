@@ -17,6 +17,7 @@ fi
 
 # STEP 2: Copy evcc service to /service/evcc to run on startup
 
+rm -rf /service/evcc
 $COMMAND
 
 # STEP 3: Make evcc survive a VenusOS update
