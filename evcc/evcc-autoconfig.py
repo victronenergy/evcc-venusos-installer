@@ -210,8 +210,8 @@ if __name__ == "__main__":
 
     logger.info("creating evcc.yaml ...")
 
-    CUSTOM_CONFIG_PATH = os.path.join(app_dir, 'evcc.custom.yaml')
-    CONFIG_PATH = os.path.join(app_dir, 'evcc.yaml')
+    CUSTOM_CONFIG_PATH = os.path.join(app_dir, 'evcc.yaml')
+    CONFIG_PATH = os.path.join(app_dir, 'evcc.ve.yaml')
 
     add_cfg = {}
     if os.path.isfile(CUSTOM_CONFIG_PATH):

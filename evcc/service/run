@@ -1,4 +1,11 @@
 #!/bin/sh
+
+if [[ -f '/data/evcc/disabled' ]] ; then
+    echo "*** evcc is disabled, not starting ***"
+    svc -d /service/evcc*
+    exit 0
+fi
+
 echo "*** starting evcc ***"
 
 until netstat -an | grep 0.0.0.0:1883.*LISTEN > /dev/null; do
@@ -10,4 +17,4 @@ done
 /data/evcc/evcc-autoconfig.py
 
 exec 2>&1
-exec /data/evcc/evcc -c /data/evcc/evcc.yaml
+exec /data/evcc/evcc -c /data/evcc/evcc.ve.yaml

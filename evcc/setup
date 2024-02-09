@@ -32,3 +32,5 @@ grep -qF -- "$COMMAND" "$FILE" || {
   printf "\n# ${DESCRIPTION}\n" >> $FILE
   echo "$COMMAND" >> "$FILE"
 }
+
+sync

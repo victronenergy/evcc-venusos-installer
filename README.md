@@ -4,6 +4,8 @@
 
 This project creates a `venus-data.tar.gz` archive for easy installation of the [evcc](https://github.com/evcc-io/evcc) project on a Victron Energy GX device running Venus OS. Within the installation process, it automatically detects and configures all Victron Energy EV Charging Stations connected to the GX device for use with evcc.
 
+**Please note:** Currently, when evcc is used together with a Victron EV Charging Station, it will overrule any manual input from the GX device, VRM portal or even from the web interface and the display of the EV Charging Station itself. We are working on making it possible to enable and disable evcc from the GX device in order to restore manual control.
+
 ## Get the repository
 
 Clone the repository and initialize the git submodule:
@@ -15,9 +17,9 @@ git submodule update --init --recursive
 
 ## Add your configuration
 
-Copy and rename the file `evcc.dist.yaml` to `evcc.yaml`. Then, add your custom configurations there, like sponsor token, EV charger configurations, etc.
+If you have a Victron system together with an Victron Energy EV Charging Station, you can skip this step, as your EVCS is automatically detected when evcc starts.
 
-If you have a Victron system together with an EV Charging Station also from us, you only need to add your sponsor token, as everything else is automatically detected when evcc starts.
+Otherwise, copy and rename the file `evcc.dist.yaml` to `evcc.yaml`. Then, add your custom configurations there, like sponsor token, EV charger configurations, etc.
 
 Please note the following:
 * An error in the configuration will prevent evcc from starting – In this case, the configuration must be corrected and the archive built and installed again (see steps below)
@@ -35,6 +37,14 @@ Now, run the following command to load the evcc binary and pack a `venus-data.ta
 sh build.sh
 ```
 
-Put the `venus-data.tar.gz` archive on a USB stick or SD card, connect it to the GX device and reboot the device. If you have SSH access, you can alternatively call `/etc/init.d/update-data.sh` instead of rebooting.
+Put the `venus-data.tar.gz` archive on a USB stick or SD card, connect it to the GX device and reboot the device. If you have SSH access, you can alternatively call `/etc/init.d/update-data.sh` instead of rebooting. 
 
 After a while, evcc will get available at port `7070` of your GX device, e.g. [http://venus.local:7070/](http://venus.local:7070/).
+
+Please don't forget to remove the USB stick after the installation process.
+
+## Frequently Asked Questions (FAQs)
+
+### How to disable the evcc service?
+
+We are working on controls via the user interface of the GX device. Until then, this must be done via SSH: Disable evcc service with the command `touch /data/evcc/disabled && svc -d /service/evcc*` and re-enable it using `rm /data/evcc/disabled && svc -u /service/evcc*`. Please remember to remove the USB stick after install, as otherwise this setting will be overwritten on a reboot.

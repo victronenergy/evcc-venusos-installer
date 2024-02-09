@@ -3,5 +3,5 @@ evcc/evcc
 venus-data.tar.gz
 evcc.yaml
 evcc/**/evcc.dist.yaml
-evcc.custom.yaml
+evcc/evcc.yaml
 evcc/pyyaml*
