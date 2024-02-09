@@ -1,6 +1,6 @@
 #!/bin/sh
 
-if [[ -f '/data/evcc/disabled' ]] ; then
+if [[ -f '/data/evcc_disabled' ]] ; then
     echo "*** evcc is disabled, not starting ***"
     svc -d /service/evcc*
     exit 0
