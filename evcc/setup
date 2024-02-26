@@ -20,7 +20,7 @@ fi
 rm -rf /service/evcc
 $COMMAND
 
-# STEP 3: Make evcc survive a VenusOS update
+# STEP 3: Install evcc service controls
 
 # Create file if not exists
 [ -f $FILE ] || {
@@ -28,10 +28,24 @@ $COMMAND
   chmod +x $FILE
 }
 
-# Add description and command to file, if not present
-grep -qF -- "$COMMAND" "$FILE" || {
-  printf "\n# ${DESCRIPTION}\n" >> $FILE
-  echo "$COMMAND" >> "$FILE"
-}
+# Check if controlling via evcc is possible
+sh /data/evcc/dbus-evcc-check
+if [[ $? -eq 0 ]]; then
+
+  # Remove previously set disable file
+  rm -f /data/.evcc_disabled
+
+  # Remove evcc auto-reinstall, if present
+  sed -i "/# $DESCRIPTION/,/${COMMAND//\//\\/}/d" $FILE
+
+else
+
+  # Use evcc auto-reinstall, if not already present
+  grep -qF -- "$COMMAND" "$FILE" || {
+    echo "# ${DESCRIPTION}" >> $FILE
+    echo "${COMMAND}" >> $FILE
+  }
+
+fi
 
 sync

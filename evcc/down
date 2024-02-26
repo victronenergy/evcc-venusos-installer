@@ -1,4 +1,13 @@
 #!/bin/sh
 
-touch /data/.evcc_disabled
-svc -d /service/evcc*
+sh /data/evcc/dbus-evcc-check
+if [[ $? -eq 0 ]]; then
+
+    dbus-send --system --print-reply --dest=com.victronenergy.settings /Settings/Services/Evcc com.victronenergy.BusItem.SetValue variant:int32:0 > /dev/null
+
+else
+
+    touch /data/.evcc_disabled
+    svc -d /service/evcc*
+
+fi
