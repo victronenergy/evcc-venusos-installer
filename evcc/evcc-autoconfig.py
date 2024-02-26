@@ -34,7 +34,7 @@ class EvccDbusConfig:
     def __init__(self):
         self._bus = dbus.SessionBus() if 'DBUS_SESSION_BUS_ADDRESS' in os.environ else dbus.SystemBus()
 
-        self.evcc_hostname = 'evcc.local'
+        self.evcc_hostname = 'venus.local'
         self.evcc_port     = 7070
 
         self.mqtt_hostname      = '127.0.0.1:1883'
