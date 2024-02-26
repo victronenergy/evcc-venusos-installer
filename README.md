@@ -37,9 +37,9 @@ Now, run the following command to load the evcc binary and pack a `venus-data.ta
 sh build.sh
 ```
 
-Put the `venus-data.tar.gz` archive on a USB stick or SD card, connect it to the GX device and reboot the device. If you have SSH access, you can alternatively call `/etc/init.d/update-data.sh` instead of rebooting. 
+Put the `venus-data.tar.gz` archive on a USB stick or SD card, connect it to the GX device and reboot the device.
 
-After a while, evcc will get available at port `7070` of your GX device, e.g. [http://venus.local:7070/](http://venus.local:7070/).
+After some seconds, evcc will get available at port `7070` of your GX device, e.g. [http://venus.local:7070/](http://venus.local:7070/).
 
 Please don't forget to remove the USB stick after the installation process.
 
