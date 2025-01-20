@@ -48,3 +48,36 @@ Please don't forget to remove the USB stick after the installation process.
 ### How to disable the evcc service?
 
 We are working on controls via the user interface of the GX device. Until then, this must be done via SSH by executing `/data/evcc/down` to disable and `/data/evcc/up` for re-enabling it.
+
+### How to uninstall evcc?
+
+Actually, it should be enough to delete the folder `/data/evcc` and the symlink `/service/evcc`. And then restart venus-OS.
+Of course, exit with `/data/evcc/down` first.
+You may also need to remove the evcc entries from `/data/rc.local` and delete the `/data/.evcc_disabled` file that may be present.
+
+```
+/data/evcc/down
+rm -r /service/evcc
+rm -r /data/evcc
+rm -f /data/.evcc_disabled
+reboot
+```
+
+### How do I install a newer version of evcc using the script?
+
+Just adjust the `/evcc/version` file und run the script.
+
+### How to update via ssh?
+
+Everything should be done from your home directory (`cd ~`) to avoid errors:
+- stop evcc (`/data/evcc/down`)
+- download the latest evcc package (`wget https://github.com/evcc-io/evcc/releases/download/x.xxx.x/evcc_x.xxx.x_linux-armv6.tar.gz`)
+- unpack the  archive (`tar xzf evcc_x.xxx.x_linux-armv6.tar.gz`)
+- copy evcc (`cp evcc /data/evcc/`)
+- delete the downloaded files (`rm evcc*`) - make sure there are no other files named evcc before doing this (`ls -n`) ...
+- start evcc (`/data/evcc/up`)
+
+### How to edit evcc.yaml via ssh?
+
+Just login and then `nano /data/evcc/evcc.yaml`, then you have to restart evcc (`/data/evcc/down` & `/data/evcc/up`).
+The required evcc.ve.yaml will then be recreated automatically.
