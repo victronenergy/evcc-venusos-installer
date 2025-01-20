@@ -10,7 +10,7 @@ This project creates a `venus-data.tar.gz` archive for easy installation of the 
 
 Clone the repository and initialize the git submodule:
 ```sh
-git clone https://github.com/philipptrenz/evcc-venusos-installer.git
+git clone https://github.com/victronenergy/evcc-venusos-installer.git
 cd evcc-venusos-installer
 git submodule update --init --recursive
 ```
